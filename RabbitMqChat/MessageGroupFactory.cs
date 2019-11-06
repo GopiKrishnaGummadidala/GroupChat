@@ -39,7 +39,10 @@ namespace RabbitMqChat
             try
             {
                 var response = Bus.Request<GroupRequest, GroupResponse>(new GroupRequest { Name = "Test" });
-                Console.WriteLine("Group is available with Name : {0}", response.Name);
+                if (gName.Equals(response.Name))
+                {
+                    Console.WriteLine("Group is available with Name : {0}", response.Name);
+                }
                 return gName.Equals(response.Name);
             }
             catch (Exception e)
@@ -82,6 +85,11 @@ namespace RabbitMqChat
             {
                 Console.WriteLine("{0} > {1}", response.Sender, response.Text);
             }, x => x.WithTopic(gName));
+
+            Bus.Subscribe<MemberMessage>(uName, response =>
+            {
+                Console.WriteLine("{0} > {1}", response.Sender, response.Text);
+            }, x => x.WithTopic(uName));
         }
 
         public void Dispose()
@@ -220,9 +228,9 @@ namespace RabbitMqChat
                 }
             }
 
-            public IMessage Send(string text, IMessageMember target = null)
+            public IMessage Send(string text, string target = null)
             {
-                Message msg= new Message(text, this, target, Group);
+                Message msg= new Message(text, this, null, Group);
                 Group.Messages.Add(msg);
 
                 MemberMessage publishMessage = new MemberMessage();
@@ -232,8 +240,15 @@ namespace RabbitMqChat
                 publishMessage.Target = msg.Target?.Name;
                 publishMessage.Text = msg.Text;
 
-                Group.Bus.Publish(publishMessage, x => x.WithTopic(Group.Name));
-
+                if(target != null)
+                {
+                    Group.Bus.Publish(publishMessage, x => x.WithTopic(target));
+                }
+                else
+                {
+                    Group.Bus.Publish(publishMessage, x => x.WithTopic(Group.Name));
+                }
+               
                 return msg;
             }
         }

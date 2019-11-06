@@ -10,7 +10,7 @@ namespace RabbitMqChat
     {
         static void Main(string[] args)
         {
-            var uName = Ask("Please enter your nick name: ");
+            var uName = Ask("Please enter your User name: ");
             var gName = Ask("Please enter your Group name: ");
 
             using (var _bus = RabbitHutch.CreateBus("host=localhost", x => x.Register<IEasyNetQLogger>(_ => new EmptyLogger())))
@@ -44,13 +44,14 @@ namespace RabbitMqChat
                         group.Exit(uName);
                         break;
                     }
-                    else if (msg.StartsWith(":pub"))
-                        PublishManyMessages(uName);
-                    else if (msg.StartsWith(":cmd"))
-                        SendCommand(uName);
+                    else if (msg.StartsWith("person"))
+                    {
+                        var msgs = msg.Split(':');
+                        me.Send(msgs[2], msgs[1]);
+                    }
                     else
                     {
-                        var message = me.Send(msg,null);
+                        me.Send(msg,null);
                     }
                 }
             }
@@ -79,17 +80,6 @@ namespace RabbitMqChat
         private static void SendMessage(string user, string msg)
         {
             //_bus.Publish<Message>(new Message { PostedOn = DateTime.Now, User = user, Text = msg });
-        }
-
-        private static void PublishManyMessages(string user)
-        {
-            for (var a = 0; a < 100; a++)
-                SendMessage(user, ":delay Sample message " + a);
-        }
-
-        private static void SendCommand(string user)
-        {
-            Console.WriteLine("Randomly asking for nickname");
         }
 
     }

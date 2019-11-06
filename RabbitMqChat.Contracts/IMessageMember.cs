@@ -27,7 +27,7 @@ namespace RabbitMqChat.Contracts
         /// <returns>
         ///  the message sent or throws an exception if e.g. we are not in a <see cref="Group"/>.
         /// </returns>
-        IMessage Send(string text, IMessageMember target = null);
+        IMessage Send(string text, string target = null);
 
     }
 }
