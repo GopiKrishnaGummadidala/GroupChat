@@ -31,22 +31,22 @@ namespace RabbitMqChat.Contracts
         event Action<IMessageMember> MembersChanged;
 
         /// <summary>
-        ///  Join this <see cref="IMessageGroup"/> with a unique <paramref name="name"/>.
+        ///  Join this <see cref="IMessageGroup"/> with a unique <paramref name="uName"/>.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="uName"></param>
         /// <returns>
         ///  a <see cref="IMessageMember"/> if possible.
         /// </returns>
-        IMessageMember Join(string name);
+        IMessageMember Join(string uName);
 
         /// <summary>
-        ///  Exit from this <see cref="IMessageGroup"/> with <paramref name="name"/>.
+        ///  Exit from this <see cref="IMessageGroup"/> with <paramref name="uName"/>.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="uName"></param>
         /// <returns>
         ///  a boolean
         /// </returns>
-        bool Exit(string name);
+        bool Exit(string uName);
 
         /// <summary>
         ///  The messages that are here. Ordered by <see cref="IMessage.Time"/> and only

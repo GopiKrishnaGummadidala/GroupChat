@@ -1,4 +1,5 @@
 ﻿using EasyNetQ;
+using EasyNetQ.Topology;
 using RabbitMqChat.Contracts;
 using RabbitMqChat.Models;
 using System;
@@ -19,14 +20,17 @@ namespace RabbitMqChat
 
         public IMessageGroup Create(string gName, string uName)
         {
+            
             if (!CheckForGroup(gName))
             {
                 PublishGroupName(gName);
                 Console.WriteLine("Group is created with Name : {0}", gName);
             }
-            SendMemberJoined(gName, uName);
-            SubscribeMemberJoined(gName, uName);
+            Console.WriteLine("You will be joined to chat soon. If you will want to leave just enter message 'exit'");
+            SubscribeMemberJoin(gName, uName);
+            SubscribeMemberExit(gName, uName);
             SubscribeMessage(gName, uName);
+
             return new MessageGroup(Bus,gName);
         }
 
@@ -44,6 +48,8 @@ namespace RabbitMqChat
             }
         }
 
+       
+
         private void PublishGroupName(string gName)
         {
             Bus.Respond<GroupRequest, GroupResponse>(request => ResponseGroupName(gName)); 
@@ -54,17 +60,20 @@ namespace RabbitMqChat
             return new GroupResponse { Name = gName };
         }
 
-        private void SubscribeMemberJoined(string gName,string uName)
+        private void SubscribeMemberJoin(string gName,string uName)
         {
-            Bus.Subscribe<MemberJoined>(uName, response =>
+            Bus.Subscribe<MemberJoin>(uName, response =>
             {
                 Console.WriteLine("Member : {0} joined to this Group : {1}", response.Name, response.GroupName);
             }, x => x.WithTopic(gName));
         }
 
-        private void SendMemberJoined(string gName, string uName)
+        private void SubscribeMemberExit(string gName, string uName)
         {
-            Bus.Publish(new MemberJoined { Name = uName, GroupName = gName }, x => x.WithTopic(gName));
+            Bus.Subscribe<MemberLeave>(uName, response =>
+            {
+                Console.WriteLine("Member : {0} left from this Group : {1}", response.Name, response.GroupName);
+            }, x => x.WithTopic(gName));
         }
 
         private void SubscribeMessage(string gName, string uName)
@@ -100,15 +109,18 @@ namespace RabbitMqChat
                 Messages = new List<IMessage>();
             }
 
-            public IMessageMember Join(string name)
+            public IMessageMember Join(string uName)
             {
-                if (Members.Any(m => m.Name == name))
+                if (Members.Any(m => m.Name == uName))
                 {
                     throw new OperationCanceledException("Cannot initialize message member, There is already a member with this name");
                 }
 
-                MessageMember messageMember = new MessageMember(name, this);
+                MessageMember messageMember = new MessageMember(uName, this);
                 Members.Add(messageMember);
+
+                SendMemberJoin(Name, uName);
+
                 if (MembersChanged != null)
                 {
                     MembersChanged.Invoke(messageMember);
@@ -116,12 +128,18 @@ namespace RabbitMqChat
                 return messageMember;
             }
 
-            public bool Exit(string name)
+            private void SendMemberJoin(string gName, string uName)
             {
-                if (Members.Any(m => m.Name == name))
+                Bus.Publish(new MemberJoin { Name = uName, GroupName = gName }, x => x.WithTopic(gName));
+            }
+
+            public bool Exit(string uName)
+            {
+                if (Members.Any(m => m.Name == uName))
                 {
-                    var member = Members.FirstOrDefault(m => m.Name == name);
+                    var member = Members.FirstOrDefault(m => m.Name == uName);
                     Members.Remove(member);
+                    SendMemberExit(Name, uName);
                     if (MembersChanged != null)
                     {
                         MembersChanged.Invoke(member);
@@ -130,6 +148,27 @@ namespace RabbitMqChat
                 }
                 
                 return false;
+            }
+
+            private void SendMemberExit(string gName, string uName)
+            {
+                Bus.Publish(new MemberLeave { Name = uName, GroupName = gName }, x => x.WithTopic(gName));
+                DeleteQueue("RabbitMqChat.Models.MemberJoin:RabbitMqChat.Models_" + uName, false);
+                DeleteQueue("RabbitMqChat.Models.MemberLeave:RabbitMqChat.Models_" + uName, false);
+                DeleteQueue("RabbitMqChat.Models.MemberMessage:RabbitMqChat.Models_" + uName, false);
+            }
+
+            private void DeleteQueue(string qName, bool isExclusive)
+            {
+                try
+                {
+                    IQueue queue = new Queue(qName, isExclusive);
+                    Bus.Advanced.QueueDelete(queue);
+                }
+                catch (Exception e)
+                {
+                    //To Do: Exception Logging
+                }
             }
 
             public bool DeleteMessage(string text)

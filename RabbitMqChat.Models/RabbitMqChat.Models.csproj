@@ -44,7 +44,8 @@
   <ItemGroup>
     <Compile Include="GroupRequest.cs" />
     <Compile Include="GroupResponse.cs" />
-    <Compile Include="MemberJoined.cs" />
+    <Compile Include="MemberJoin.cs" />
+    <Compile Include="MemberLeave.cs" />
     <Compile Include="MemberMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

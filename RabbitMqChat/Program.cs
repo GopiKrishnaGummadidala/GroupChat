@@ -41,7 +41,7 @@ namespace RabbitMqChat
 
                     if (msg.Equals("exit", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        SendExitMessage(uName);
+                        group.Exit(uName);
                         break;
                     }
                     else if (msg.StartsWith(":pub"))
@@ -76,12 +76,6 @@ namespace RabbitMqChat
             }
             return result;
         }
-
-        private static void SendExitMessage(string user)
-        {
-            //_bus.Publish<Leaved>(new Leaved() { LeftOn = DateTime.Now, User = user });
-        }
-
         private static void SendMessage(string user, string msg)
         {
             //_bus.Publish<Message>(new Message { PostedOn = DateTime.Now, User = user, Text = msg });
