@@ -2,7 +2,7 @@
 
 namespace RabbitMqChat.Models
 {
-    public class MemberLeave
+    public class Member
     {
         public string Name { get; set; }
 

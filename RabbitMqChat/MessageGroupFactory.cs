@@ -13,83 +13,69 @@ namespace RabbitMqChat
     {
         private IBus Bus { get; }
 
+        public IList<IMessageGroup> GroupList { get; private set; }
+
         public MessageGroupFactory(IBus bus)
         {
             Bus = bus;
+            GroupList = new List<IMessageGroup>();
         }
 
-        public IMessageGroup Create(string gName, string uName)
+        public IMessageGroup Create(string name)
         {
-            
-            if (!CheckForGroup(gName))
+            if (!string.IsNullOrEmpty(name))
             {
-                PublishGroupName(gName);
-                Console.WriteLine("Group is created with Name : {0}", gName);
-            }
-            Console.WriteLine("You will be joined to chat soon. If you will want to leave just enter message 'exit'");
-            SubscribeMemberJoin(gName, uName);
-            SubscribeMemberExit(gName, uName);
-            SubscribeMessage(gName, uName);
+                IMessageGroup existedGroup = CheckForGroup(name);
+                if (existedGroup != null)
+                {
+                    // TO DO: Bus Communication
+                    // PublishGroupName(name);
+                    // Console.WriteLine("Group is created with Name : {0}", name);
+                    // new MessageGroup(Bus, name);
+                    return existedGroup;
+                }
+                else
+                {
+                    // To Do: Clone the existing MesssageGroup Object
+                    //return  new MessageGroup(Bus, name);
 
-            return new MessageGroup(Bus,gName);
+                    MessageGroup msgGroup = new MessageGroup(Bus, name);
+                    GroupList.Add(msgGroup);
+
+                    return msgGroup;
+                }
+            }
+
+            throw new ArgumentNullException("Cannot initialize group, without Name");
         }
 
-        private bool CheckForGroup(string gName)
+        private IMessageGroup CheckForGroup(string gName)
         {
             try
             {
-                var response = Bus.Request<GroupRequest, GroupResponse>(new GroupRequest { Name = "Test" });
-                if (gName.Equals(response.Name))
-                {
-                    Console.WriteLine("Group is available with Name : {0}", response.Name);
-                }
-                return gName.Equals(response.Name);
+                return GroupList.FirstOrDefault(g => g.Name == gName);
+                // TO DO: Bus Communication
+                //var response = Bus.Request<GroupRequest, GroupResponse>(new GroupRequest { });
+                //if (gName.Equals(response.Name))
+                //{
+                //    Console.WriteLine("Group is available with Name : {0}", response.Name);
+                //}
+                //return gName.Equals(response.Name);
             }
             catch (Exception e)
             {
-                return false;
+                return null;
             }
         }
 
-       
-
         private void PublishGroupName(string gName)
         {
-            Bus.Respond<GroupRequest, GroupResponse>(request => ResponseGroupName(gName)); 
+            Bus.Respond<GroupRequest, GroupResponse>(request => ResponseGroupName(gName));
         }
 
         private GroupResponse ResponseGroupName(string gName)
         {
             return new GroupResponse { Name = gName };
-        }
-
-        private void SubscribeMemberJoin(string gName,string uName)
-        {
-            Bus.Subscribe<MemberJoin>(uName, response =>
-            {
-                Console.WriteLine("Member : {0} joined to this Group : {1}", response.Name, response.GroupName);
-            }, x => x.WithTopic(gName));
-        }
-
-        private void SubscribeMemberExit(string gName, string uName)
-        {
-            Bus.Subscribe<MemberLeave>(uName, response =>
-            {
-                Console.WriteLine("Member : {0} left from this Group : {1}", response.Name, response.GroupName);
-            }, x => x.WithTopic(gName));
-        }
-
-        private void SubscribeMessage(string gName, string uName)
-        {
-            Bus.Subscribe<MemberMessage>(uName, response =>
-            {
-                Console.WriteLine("{0} > {1}", response.Sender, response.Text);
-            }, x => x.WithTopic(gName));
-
-            Bus.Subscribe<MemberMessage>(uName, response =>
-            {
-                Console.WriteLine("{0} > {1}", response.Sender, response.Text);
-            }, x => x.WithTopic(uName));
         }
 
         public void Dispose()
@@ -107,7 +93,24 @@ namespace RabbitMqChat
             public IList<IMessageMember> Members { get; private set; }
 
             public event Action<IMessageMember> MembersChanged;
+
             public event Action<IMessage> MessageChanged;
+
+            public void SendMessageChanged(IMessage message)
+            {
+                if (MessageChanged != null)
+                {
+                    MessageChanged.Invoke(message);
+                }
+            }
+
+            public void SendMemberChanged(IMessageMember member)
+            {
+                if (MembersChanged != null)
+                {
+                    MembersChanged.Invoke(member);
+                }
+            }
 
             public MessageGroup(IBus bus, string name)
             {
@@ -117,23 +120,31 @@ namespace RabbitMqChat
                 Messages = new List<IMessage>();
             }
 
-            public IMessageMember Join(string uName)
+            public IMessageMember Join(string name)
             {
-                if (Members.Any(m => m.Name == uName))
+                if (!string.IsNullOrEmpty(name))
                 {
-                    throw new OperationCanceledException("Cannot initialize message member, There is already a member with this name");
+                    if (Members.Any(m => m.Name == name))
+                    {
+                        throw new ArgumentOutOfRangeException("Cannot initialize message member, There is already a member with this name");
+                    }
+
+                    MessageMember messageMember = new MessageMember(name, this);
+                    Members.Add(messageMember);
+
+                    // TO DO: Bus Communication
+                    //SubscribeMessage(Name, name);
+                    //SubscribeMemberJoin(Name, name);
+                    //SendMemberJoin(Name, name);
+                    //SubscribeMemberExit(Name, name);
+
+                    if (MembersChanged != null)
+                    {
+                        MembersChanged.Invoke(messageMember);
+                    }
+                    return messageMember;
                 }
-
-                MessageMember messageMember = new MessageMember(uName, this);
-                Members.Add(messageMember);
-
-                SendMemberJoin(Name, uName);
-
-                if (MembersChanged != null)
-                {
-                    MembersChanged.Invoke(messageMember);
-                }
-                return messageMember;
+                throw new ArgumentNullException("Cannot initialize message member, without Name");
             }
 
             private void SendMemberJoin(string gName, string uName)
@@ -141,43 +152,64 @@ namespace RabbitMqChat
                 Bus.Publish(new MemberJoin { Name = uName, GroupName = gName }, x => x.WithTopic(gName));
             }
 
-            public bool Exit(string uName)
+            private void SubscribeMemberJoin(string gName, string uName)
             {
-                if (Members.Any(m => m.Name == uName))
+                Bus.Subscribe<MemberJoin>(uName, response =>
                 {
-                    var member = Members.FirstOrDefault(m => m.Name == uName);
-                    Members.Remove(member);
-                    SendMemberExit(Name, uName);
-                    if (MembersChanged != null)
-                    {
-                        MembersChanged.Invoke(member);
-                    }
-                    return true;
-                }
-                
-                return false;
+                    //Member member = new Member();
+                    //member.Name = response.Name;
+                    //member.GroupName = response.GroupName;
+                    //MemberList.Add(member);
+
+                    //Console.WriteLine("Member : {0} joined to this Group : {1}", response.Name, response.GroupName);
+                    //Console.WriteLine("Member Count: {0}", MemberList.Count);
+
+                }, x => x.WithTopic(gName));
             }
 
-            private void SendMemberExit(string gName, string uName)
+            private void SubscribeMessage(string gName, string uName)
             {
-                Bus.Publish(new MemberLeave { Name = uName, GroupName = gName }, x => x.WithTopic(gName));
-                DeleteQueue("RabbitMqChat.Models.MemberJoin:RabbitMqChat.Models_" + uName, false);
-                DeleteQueue("RabbitMqChat.Models.MemberLeave:RabbitMqChat.Models_" + uName, false);
-                DeleteQueue("RabbitMqChat.Models.MemberMessage:RabbitMqChat.Models_" + uName, false);
+                Bus.Subscribe<MemberMessage>(uName, response =>
+                {
+                    Console.WriteLine("{0} > {1}", response.Sender, response.Text);
+                }, x => x.WithTopic(gName));
+
+                //Messaging to a direct member among any group
+                //Bus.Subscribe<MemberMessage>(uName, response =>
+                //{
+                //    Console.WriteLine("{0} > {1}", response.Sender, response.Text);
+                //}, x => x.WithTopic(uName));
             }
 
-            private void DeleteQueue(string qName, bool isExclusive)
+            private void SubscribeMemberExit(string gName, string uName)
             {
-                try
+                Bus.Subscribe<MemberLeave>(uName, response =>
                 {
-                    IQueue queue = new Queue(qName, isExclusive);
-                    Bus.Advanced.QueueDelete(queue);
-                }
-                catch (Exception e)
-                {
-                    //To Do: Exception Logging
-                }
+                    //Console.WriteLine("Member : {0} left from this Group : {1}", response.Name, response.GroupName);
+                    //if (MemberList.Any(m => m.Name == response.Name))
+                    //{
+                    //    var member = MemberList.FirstOrDefault(m => m.Name == response.Name);
+                    //    MemberList.Remove(member);
+                    //}
+
+                    //Console.WriteLine("Member Count: {0}", MemberList.Count);
+                }, x => x.WithTopic(gName));
             }
+
+            private void SendMasterMemberList(string gName)
+            {
+                //Bus.Publish(new MasterMemberList { Members = MemberList }, x => x.WithTopic(gName));
+            }
+
+            private void SubscribeMasterMemberList(string gName, string uName)
+            {
+                Bus.Subscribe<MasterMemberList>(uName, response =>
+                {
+                    //MemberList = response.Members;
+                    //Console.WriteLine("Member List Count: {0}", response.Members.Count);
+                }, x => x.WithTopic(gName));
+            }
+
 
             public bool DeleteMessage(string text)
             {
@@ -197,58 +229,108 @@ namespace RabbitMqChat
 
             public void Dispose()
             {
-                Members = null;
-                Messages = null;
+                foreach (var member in Members.ToList())
+                {
+                    member.Dispose();
+                }
             }
         }
 
         private class MessageMember : IMessageMember
         {
-            public string Name { get; set; }
+            public string Name { get; private set; }
 
-            public IMessageGroup Group { get; set; }
+            public IMessageGroup Group { get; private set; }
+
+            private MessageGroup MessageGroup { get; set; }
 
             public MessageMember(string name, IMessageGroup group)
             {
                 Name = name;
                 Group = group;
+                MessageGroup = group as MessageGroup;
             }
 
             public void Dispose()
             {
-                if (Group.Members.Any(m => m.Name == Name))
+                if (Group != null)
                 {
-                    //foreach (var message in Group.Messages.Where(m => m.Sender == this))
-                    //{
-                    //    Group.Messages.Remove(message);
-                    //}
+                    List<IMessage> msgs = Group.Messages.Where(m => m.Sender == this).ToList();
 
-                    var member = Group.Members.FirstOrDefault(m => m.Name == Name);
-                    Group.Members.Remove(member);
+                    foreach (var message in msgs)
+                    {
+                        message.Dispose();
+                    }
+
+                    if (Group.Members.Remove(this))
+                    {
+                        var messageGroup = MessageGroup;
+                        MessageGroup = null;
+                        Group = null;
+                        messageGroup?.SendMemberChanged(this);
+                    }
+
+                    // TO DO: Bus Communication
+                    //SendMemberExit(MessageGroup.Name, Name);
+
                 }
             }
 
-            public IMessage Send(string text, string target = null)
+            private void SendMemberExit(string gName, string uName)
             {
-                Message msg= new Message(text, this, null, Group);
-                Group.Messages.Add(msg);
+                MessageGroup.Bus.Publish(new MemberLeave { Name = uName, GroupName = gName }, x => x.WithTopic(gName));
+                DeleteQueue("RabbitMqChat.Models.MemberJoin:RabbitMqChat.Models_" + uName, false);
+                DeleteQueue("RabbitMqChat.Models.MemberLeave:RabbitMqChat.Models_" + uName, false);
+                DeleteQueue("RabbitMqChat.Models.MemberMessage:RabbitMqChat.Models_" + uName, false);
+            }
 
-                MemberMessage publishMessage = new MemberMessage();
-                publishMessage.PostedOn = msg.Time;
-                publishMessage.GroupName = msg.Group?.Name;
-                publishMessage.Sender = msg.Sender?.Name;
-                publishMessage.Target = msg.Target?.Name;
-                publishMessage.Text = msg.Text;
+            private void DeleteQueue(string qName, bool isExclusive)
+            {
+                try
+                {
+                    IQueue queue = new Queue(qName, isExclusive);
+                    MessageGroup.Bus.Advanced.QueueDelete(queue);
+                }
+                catch (Exception e)
+                {
+                    //To Do: Exception Logging
+                }
+            }
 
-                if(target != null)
+            public IMessage Send(string text, IMessageMember target = null)
+            {
+                Message msg = null;
+                try
                 {
-                    Group.Bus.Publish(publishMessage, x => x.WithTopic(target));
+                    if (Group != null && target == null || target.Group == Group)
+                    {
+                        msg = new Message(text, this, target, Group);
+                        Group.Messages.Add(msg);
+                        MessageGroup.SendMessageChanged(msg);
+                        return msg;
+                    }
+
+                    //MemberMessage publishMessage = new MemberMessage();
+                    //publishMessage.PostedOn = msg.Time;
+                    //publishMessage.GroupName = msg.Group?.Name;
+                    //publishMessage.Sender = msg.Sender?.Name;
+                    //publishMessage.Target = msg.Target?.Name;
+                    //publishMessage.Text = msg.Text;
+
+                    //if (target != null)
+                    //{
+                    //    MessageGroup.Bus.Publish(publishMessage, x => x.WithTopic(target));
+                    //}
+                    //else
+                    //{
+                    //    MessageGroup.Bus.Publish(publishMessage, x => x.WithTopic(Group.Name));
+                    //}
                 }
-                else
+                catch (Exception ex)
                 {
-                    Group.Bus.Publish(publishMessage, x => x.WithTopic(Group.Name));
+                    // To Do: Exception Logging
                 }
-               
+
                 return msg;
             }
         }
@@ -271,15 +353,20 @@ namespace RabbitMqChat
                 Sender = sender;
                 Target = target;
                 Group = group;
-                Time = DateTime.Now;
+                Time = DateTime.UtcNow;
             }
 
             public void Dispose()
             {
-                if (Group.Messages.Any(m => m.Text == Text))
+                if (Group != null)
                 {
-                    var message = Group.Messages.FirstOrDefault(m => m.Text == Text);
-                    Group.Messages.Remove(message);
+                    if (Group.Messages.Remove(this))
+                    {
+                        var group = Group as MessageGroup;
+                        Group = null;
+                        group?.SendMessageChanged(this);
+                    }
+
                 }
             }
         }

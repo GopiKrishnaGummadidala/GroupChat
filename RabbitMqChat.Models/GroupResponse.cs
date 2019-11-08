@@ -1,7 +1,4 @@
-﻿using RabbitMqChat.Contracts;
-using System.Collections.Generic;
-
-namespace RabbitMqChat.Models
+﻿namespace RabbitMqChat.Models
 {
     public class GroupResponse
     {

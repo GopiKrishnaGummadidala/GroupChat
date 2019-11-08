@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using EasyNetQ;
 using RabbitMqChat.Contracts;
@@ -10,13 +11,18 @@ namespace RabbitMqChat
     {
         static void Main(string[] args)
         {
+
+            var xxx = new List<int> { 1, 2, 3 };
+            foreach (var i in xxx) 
+                xxx.Remove(i);
+
             var uName = Ask("Please enter your User name: ");
             var gName = Ask("Please enter your Group name: ");
 
             using (var _bus = RabbitHutch.CreateBus("host=localhost", x => x.Register<IEasyNetQLogger>(_ => new EmptyLogger())))
             {
                 MessageGroupFactory messageGroupFactory = new MessageGroupFactory(_bus);
-                var group = messageGroupFactory.Create(gName, uName);
+                var group = messageGroupFactory.Create(gName);
                 if (group.Name != gName ||
                     !group.Members.Any())
                 {
@@ -41,17 +47,12 @@ namespace RabbitMqChat
 
                     if (msg.Equals("exit", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        group.Exit(uName);
+                        me.Dispose();
                         break;
-                    }
-                    else if (msg.StartsWith("person"))
-                    {
-                        var msgs = msg.Split(':');
-                        me.Send(msgs[2], msgs[1]);
                     }
                     else
                     {
-                        me.Send(msg,null);
+                       var iMsg = me.Send(msg,null);
                     }
                 }
             }

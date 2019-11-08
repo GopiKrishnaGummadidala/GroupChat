@@ -8,7 +8,7 @@ namespace RabbitMqChat.Contracts
     public interface IMessage : IDisposable
     {
         /// <summary>
-        ///  When empty this message is not any more part of a <see cref="IMessageGroup"/> and has probably be deleted.
+        ///  When empty, this message is not any more part of a <see cref="IMessageGroup"/> and has probably be deleted.
         /// </summary>
         IMessageGroup Group { get; }
 

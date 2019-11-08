@@ -16,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{DCA88E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMqChat.Models", "RabbitMqChat.Models\RabbitMqChat.Models.csproj", "{FE8B8729-B7AE-4A1C-BCE0-2320A7060BFF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9967EEAE-2DD3-4A8F-9626-3ABB920C8364}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMqChat.Tests", "RabbitMqChat.Tests\RabbitMqChat.Tests.csproj", "{3688534D-C782-41BD-9066-2F66BB0FD775}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,9 +38,16 @@ Global
 		{FE8B8729-B7AE-4A1C-BCE0-2320A7060BFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE8B8729-B7AE-4A1C-BCE0-2320A7060BFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE8B8729-B7AE-4A1C-BCE0-2320A7060BFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3688534D-C782-41BD-9066-2F66BB0FD775}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3688534D-C782-41BD-9066-2F66BB0FD775}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3688534D-C782-41BD-9066-2F66BB0FD775}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3688534D-C782-41BD-9066-2F66BB0FD775}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3688534D-C782-41BD-9066-2F66BB0FD775} = {9967EEAE-2DD3-4A8F-9626-3ABB920C8364}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {09669158-BDDB-41A0-AF40-018409F0347C}
