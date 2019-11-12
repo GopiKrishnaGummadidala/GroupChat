@@ -31,7 +31,7 @@ namespace RabbitMqChat.Tests
         public virtual void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "MessageGroupFactory", "\tCreating a Messagegroupfactory and testing all possible scenarios", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "MessageGroupFactory", "\t     Creating a MessageGroup from factory and testing all possible scenarios", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -70,71 +70,63 @@ namespace RabbitMqChat.Tests
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Create group")]
-        [NUnit.Framework.TestCaseAttribute("\"CSE\"", "\"CSE\"", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("\"CSE\"", "\"CSE\"", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("\"IT\"", "\"IT\"", "2", null)]
-        [NUnit.Framework.TestCaseAttribute("\"\"", "\"exception\"", "0", null)]
-        public virtual void CreateGroup(string groupName, string resultGroupName, string groupListCount, string[] exampleTags)
+        [NUnit.Framework.DescriptionAttribute("Create Group")]
+        public virtual void CreateGroup()
         {
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create group", null, exampleTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create Group", null, ((string[])(null)));
 #line 4
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
 #line 5
- testRunner.Given(string.Format("I have entered {0} into console as group name", groupName), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+testRunner.Given("group \"CSE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line 6
- testRunner.When("I click on enter", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+testRunner.Given("group \"IT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line 7
- testRunner.Then(string.Format("the result should be return a message group with name {0}", resultGroupName), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+testRunner.When("group is created", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 8
- testRunner.And(string.Format("the result should be {0} on the MessageGroupList Count", groupListCount), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+testRunner.Then("result should return a message group with name \"CSE\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 9
+testRunner.And("result should have 1 in the MessageGroupList Count", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Join a Member to Group")]
-        [NUnit.Framework.TestCaseAttribute("\"Test\"", "\"Test\"", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("\"Test\"", "\"exception\"", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("\"\"", "\"exception\"", "0", null)]
-        public virtual void JoinAMemberToGroup(string name, string resultName, string groupMembersCount, string[] exampleTags)
+        [NUnit.Framework.DescriptionAttribute("Create Another Group")]
+        public virtual void CreateAnotherGroup()
         {
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Join a Member to Group", null, exampleTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create Another Group", null, ((string[])(null)));
+#line 11
+this.ScenarioInitialize(scenarioInfo);
+            this.ScenarioStart();
+#line 12
+testRunner.Given("group \"IT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 13
+testRunner.When("group is created", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 14
+testRunner.Then("result should return a message group with name \"IT\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 15
+testRunner.And("result should have 2 in the MessageGroupList Count", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            this.ScenarioCleanup();
+        }
+        
+        [NUnit.Framework.TestAttribute()]
+        [NUnit.Framework.DescriptionAttribute("Join Member to Group")]
+        public virtual void JoinMemberToGroup()
+        {
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Join Member to Group", null, ((string[])(null)));
 #line 18
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
 #line 19
- testRunner.Given(string.Format("I have entered {0} into console as member name", name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+testRunner.And("member \"Test\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 20
- testRunner.When("I click on enter", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+testRunner.When("member joined to group", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 21
- testRunner.Then(string.Format("the result should be return a message member with name {0}", resultName), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+testRunner.Then("result should return a message member with name \"Test\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 22
- testRunner.And(string.Format("the result should be {0} on the MessageGroupList Count", groupMembersCount), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            this.ScenarioCleanup();
-        }
-        
-        [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Send a message in Group")]
-        [NUnit.Framework.TestCaseAttribute("\"Test\"", "\"Test\"", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("\"Test\"", "\"exception\"", "1", null)]
-        [NUnit.Framework.TestCaseAttribute("\"\"", "\"exception\"", "0", null)]
-        public virtual void SendAMessageInGroup(string name, string resultName, string groupMembersCount, string[] exampleTags)
-        {
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Send a message in Group", null, exampleTags);
-#line 31
-this.ScenarioInitialize(scenarioInfo);
-            this.ScenarioStart();
-#line 32
- testRunner.Given(string.Format("I have entered {0} into console as member name", name), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 33
- testRunner.When("I click on enter", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 34
- testRunner.Then(string.Format("the result should be return a message member with name {0}", resultName), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 35
- testRunner.And(string.Format("the result should be {0} on the MessageGroupList Count", groupMembersCount), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+testRunner.And("result should have 1 member in MessageGroup members", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }

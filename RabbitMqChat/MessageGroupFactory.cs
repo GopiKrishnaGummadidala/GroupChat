@@ -358,15 +358,11 @@ namespace RabbitMqChat
 
             public void Dispose()
             {
-                if (Group != null)
+                if (Group != null && Group.Messages.Remove(this))
                 {
-                    if (Group.Messages.Remove(this))
-                    {
-                        var group = Group as MessageGroup;
-                        Group = null;
-                        group?.SendMessageChanged(this);
-                    }
-
+                    var group = Group as MessageGroup;
+                    Group = null;
+                    group?.SendMessageChanged(this);
                 }
             }
         }

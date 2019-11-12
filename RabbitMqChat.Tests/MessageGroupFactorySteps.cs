@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 using RabbitMqChat.Contracts;
 using System;
 using TechTalk.SpecFlow;
@@ -8,32 +8,70 @@ namespace RabbitMqChat.Tests
     [Binding]
     public class MessageGroupFactorySteps
     {
-        private string GroupName;
-        private IMessageGroup messageGroup;
-        private readonly IMessageGroupFactory messageGroupFactory = new MessageGroupFactory(null);
+        private string _groupName;
+        private string _memberName;
+        private IMessageGroup _messageGroup;
+        private IMessageMember _messageMember;
+        private readonly IMessageGroupFactory _messageGroupFactory;
 
-        [Given(@"I have entered ""(.*)"" into console as group name")]
-        public void GivenIHaveEnteredIntoConsoleAsGroupName(string name)
+        public MessageGroupFactorySteps()
         {
-            GroupName = name;
+            _messageGroupFactory = new MessageGroupFactory(null);
+        }
+
+        [Given(@"group ""(.*)""")]
+        public void GivenGroup(string name)
+        {
+            _groupName = name;
         }
         
-        [When(@"I click on enter")]
-        public void WhenIClickOnEnter()
+        [Given(@"member ""(.*)""")]
+        public void GivenMember(string name)
         {
-            messageGroup = messageGroupFactory.Create(GroupName);
+            _memberName = name;
         }
         
-        [Then(@"the result should be return a message group with name ""(.*)""")]
-        public void ThenTheResultShouldBeReturnAMessageGroupWithName(string name)
+        [When(@"group is created")]
+        public void WhenGroupIsCreated()
         {
-            Assert.AreEqual(name, messageGroup.Name);
+            _messageGroup = _messageGroupFactory.Create(_groupName);
         }
         
-        [Then(@"the result should be (.*) on the MessageGroupList Count")]
-        public void ThenTheResultShouldBeOnTheMessageGroupListCount(int count)
+        [When(@"member joined to group")]
+        public void WhenMemberJoinedToGroup()
         {
-            Assert.AreEqual(count, messageGroupFactory.GroupList.Count);
+            if (string.IsNullOrEmpty(_memberName))
+            {
+                Assert.Throws<ArgumentNullException>(() => _messageGroup.Join(_memberName));
+            }
+            else
+            {
+                _messageMember = _messageGroup.Join(_memberName);
+            }
+        }
+        
+        [Then(@"result should return a message group with name ""(.*)""")]
+        public void ThenResultShouldReturnAMessageGroupWithName(string name)
+        {
+            Assert.AreEqual(name, _messageGroup.Name);
+        }
+        
+        [Then(@"result should have (.*) in the MessageGroupList Count")]
+        public void ThenResultShouldHaveInTheMessageGroupListCount(int count)
+        {
+            Assert.AreEqual(count, _messageGroupFactory.GroupList.Count);
+        }
+        
+        [Then(@"result should return a message member with name ""(.*)""")]
+        public void ThenResultShouldReturnAMessageMemberWithName(string name)
+        {
+            Assert.AreEqual(name, _messageMember.Name);
+        }
+        
+        [Then(@"result should have (.*) member in MessageGroup members")]
+        public void ThenResultShouldHaveMemberInMessageGroupMembers(int count)
+        {
+            Assert.AreEqual(count, _messageGroup.Members.Count);
         }
     }
 }

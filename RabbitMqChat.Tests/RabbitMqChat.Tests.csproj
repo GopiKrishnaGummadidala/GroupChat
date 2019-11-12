@@ -43,8 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MessageGroupFactorySteps.cs" />
-    <Compile Include="MessageGroupFactorySteps1.cs" />
-    <Compile Include="MessageGroupSteps.cs" />
+    <Compile Include="MessageSteps.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,7 +77,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MessageGroup.feature" />
+    <None Include="Message.feature" />
     <None Include="MessageGroupFactory.feature" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
